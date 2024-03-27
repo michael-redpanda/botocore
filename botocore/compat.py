@@ -22,6 +22,7 @@ import logging
 import shlex
 import re
 import os
+import sys
 from collections import OrderedDict
 from collections.abc import MutableMapping
 from math import floor
@@ -148,7 +149,10 @@ def total_seconds(delta):
 # Checks to see if md5 is available on this system. A given system might not
 # have access to it for various reasons, such as FIPS mode being enabled.
 try:
-    hashlib.md5()
+    if sys.version_info >= (3, 9):
+        hashlib.md5(usedforsecurity=False)
+    else:
+        hashlib.md5()
     MD5_AVAILABLE = True
 except ValueError:
     MD5_AVAILABLE = False
@@ -167,7 +171,10 @@ def get_md5(*args, **kwargs):
         is returned if raise_error_if_unavailable is set to False.
     """
     if MD5_AVAILABLE:
-        return hashlib.md5(*args, **kwargs)
+        if sys.version_info >= (3, 9):
+            return hashlib.md5(*args, usedforsecurity=False, **kwargs)
+        else:
+            return hashlib.md5(*args, **kwargs)
     else:
         raise MD5UnavailableError()
 
